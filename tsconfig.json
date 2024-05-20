@@ -1,3 +1,18 @@
 {
-  "extends": "@react-native/typescript-config/tsconfig.json"
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "commonjs",
+    "strict": true,
+    "jsx": "react",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": "./",
+    "paths": {
+      "@components/*": ["src/components/*"],
+      "@screens/*": ["src/screens/*"],
+      "@api/*": ["src/api/*"]
+    }
+  },
+  "include": ["src"]
 }
