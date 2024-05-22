@@ -13,6 +13,7 @@ import ItemComponent from '../components/Item';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types/navigation';
 import { ItemType } from '../types';
+import NavBar from '../components/NavBar';
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -55,6 +56,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <NavBar />
       <Text style={styles.header}>Recepti</Text>
       <Button title="Add Item" onPress={handleAddItemPress} />
       <FlatList

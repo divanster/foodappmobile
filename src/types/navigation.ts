@@ -9,6 +9,7 @@ export type RootStackParamList = {
   AddItem: undefined;
   ItemDetail: { itemId: number };
   Comments: { itemId: number };
+  Profile: undefined;
 };
 
 export type ItemDetailScreenNavigationProp = StackNavigationProp<

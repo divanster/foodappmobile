@@ -1,8 +1,10 @@
+// src/screens/AddItemScreen.tsx
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { addItem } from '../api/api';
 import { AddItemScreenProps } from '../types/navigation';
 import axios from 'axios';
+import NavBar from '../components/NavBar';
 
 const DEFAULT_IMAGE_URL =
   'https://media.istockphoto.com/id/1426890025/es/foto/la-pizza-de-la-que-te-olvidaste-durante-una-semana-y-se-puso-mohosa.jpg?s=612x612&w=0&k=20&c=r0cHrYxEjoLUoSz9VQCglgXc6Win_fFu-fjDwWfoPu4=';
@@ -42,6 +44,7 @@ const AddItemScreen: React.FC<AddItemScreenProps> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <NavBar />
       <TextInput
         style={styles.input}
         placeholder="Item Name"
