@@ -79,7 +79,9 @@ export const getItem = async (id: number) => {
 export const rateItem = async (id: number, rating: number) => {
   try {
     console.log(`Rating item with ID: ${id} with rating: ${rating}`);
-    const response = await axios.post(`${API_URL}/items/${id}/rate/`, { rating });
+    const response = await axios.post(`${API_URL}/items/${id}/submit_rating/`, {
+      rating,
+    });
     console.log('API response in rateItem:', response.data);
     return response.data;
   } catch (error) {
@@ -95,7 +97,11 @@ export const rateItem = async (id: number, rating: number) => {
   }
 };
 
-export const addItem = async (itemData: { item_name: string; item_desc: string; item_image: string }) => {
+export const addItem = async (itemData: {
+  item_name: string;
+  item_desc: string;
+  item_image: string;
+}) => {
   try {
     console.log('Adding item with data:', itemData);
     const response = await axios.post(`${API_URL}/items/`, itemData);
