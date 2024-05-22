@@ -1,13 +1,12 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { refreshAccessToken } from './auth';
 
-const API_URL = 'http://10.0.2.2:8000/api'; // Ensure this is correct for the emulator
+const API_URL = 'http://10.0.2.2:8000/api';
 
 axios.interceptors.request.use(
   async config => {
     const token = await AsyncStorage.getItem('access_token');
-    if (token) {
+    if (token && config?.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -18,19 +17,23 @@ axios.interceptors.request.use(
 );
 
 axios.interceptors.response.use(
-  response => {
-    return response;
-  },
+  response => response,
   async error => {
     const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      await refreshAccessToken();
-      const token = await AsyncStorage.getItem('access_token');
-      if (token) {
-        originalRequest.headers.Authorization = `Bearer ${token}`;
+      try {
+        const refreshToken = await AsyncStorage.getItem('refresh_token');
+        const response = await axios.post(`${API_URL}/token/refresh/`, {
+          refresh: refreshToken,
+        });
+        await AsyncStorage.setItem('access_token', response.data.access);
+        axios.defaults.headers.common.Authorization = `Bearer ${response.data.access}`;
+        originalRequest.headers.Authorization = `Bearer ${response.data.access}`;
+        return axios(originalRequest);
+      } catch (err) {
+        console.error('Error refreshing access token:', err);
       }
-      return axios(originalRequest);
     }
     return Promise.reject(error);
   },
@@ -39,76 +42,74 @@ axios.interceptors.response.use(
 export const getItems = async () => {
   try {
     const response = await axios.get(`${API_URL}/items/`);
-    return response.data.results;
+    console.log('API response in getItems:', response.data);
+    return response.data;
   } catch (error) {
-    console.error('Error fetching items: ', error);
+    if (axios.isAxiosError(error)) {
+      console.error(
+        'Error fetching items:',
+        error.response?.data || error.message,
+      );
+    } else {
+      console.error('Error fetching items:', error);
+    }
     throw error;
   }
 };
 
 export const getItem = async (id: number) => {
   try {
+    console.log(`Fetching item with ID: ${id}`);
     const response = await axios.get(`${API_URL}/items/${id}/`);
+    console.log('API response in getItem:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error fetching item: ', error);
-    throw error;
-  }
-};
-
-export const addItem = async (item: {
-  item_name: string;
-  item_desc: string;
-}) => {
-  try {
-    const response = await axios.post(`${API_URL}/items/`, item);
-    return response.data;
-  } catch (error) {
-    console.error('Error adding item: ', error);
-    throw error;
-  }
-};
-
-export const deleteItem = async (id: number) => {
-  try {
-    await axios.delete(`${API_URL}/items/${id}/`);
-  } catch (error) {
-    console.error('Error deleting item: ', error);
-    throw error;
-  }
-};
-
-export const getComments = async (itemId: number) => {
-  try {
-    const response = await axios.get(`${API_URL}/comments/?item=${itemId}`);
-    return response.data.results;
-  } catch (error) {
-    console.error('Error fetching comments: ', error);
-    throw error;
-  }
-};
-
-export const addComment = async (comment: {
-  content: string;
-  item: number;
-}) => {
-  try {
-    const response = await axios.post(`${API_URL}/comments/`, comment);
-    return response.data;
-  } catch (error) {
-    console.error('Error adding comment: ', error);
+    if (axios.isAxiosError(error)) {
+      console.error(
+        `Error fetching item ${id}:`,
+        error.response?.data || error.message,
+      );
+    } else {
+      console.error(`Error fetching item ${id}:`, error);
+    }
     throw error;
   }
 };
 
 export const rateItem = async (id: number, rating: number) => {
   try {
-    const response = await axios.post(`${API_URL}/items/${id}/rate/`, {
-      rating,
-    });
+    console.log(`Rating item with ID: ${id} with rating: ${rating}`);
+    const response = await axios.post(`${API_URL}/items/${id}/rate/`, { rating });
+    console.log('API response in rateItem:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error rating item: ', error);
+    if (axios.isAxiosError(error)) {
+      console.error(
+        `Error rating item ${id}:`,
+        error.response?.data || error.message,
+      );
+    } else {
+      console.error(`Error rating item ${id}:`, error);
+    }
+    throw error;
+  }
+};
+
+export const addItem = async (itemData: { item_name: string; item_desc: string; item_image: string }) => {
+  try {
+    console.log('Adding item with data:', itemData);
+    const response = await axios.post(`${API_URL}/items/`, itemData);
+    console.log('API response in addItem:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        'Error adding item:',
+        error.response?.data || error.message,
+      );
+    } else {
+      console.error('Error adding item:', error);
+    }
     throw error;
   }
 };

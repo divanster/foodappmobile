@@ -1,41 +1,69 @@
+// src/screens/HomeScreen.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Button, StyleSheet } from 'react-native';
-import { getItems } from '../api/api'; // Ensure no .ts extension
+import {
+  View,
+  Text,
+  FlatList,
+  Button,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
+import { getItems } from '../api/api';
+import ItemComponent from '../components/Item';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../types/navigation';
+import { ItemType } from '../types';
 
-interface Item {
-  id: number;
-  item_name: string;
-  item_desc: string;
+type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
+
+interface Props {
+  navigation: HomeScreenNavigationProp;
 }
 
-const HomeScreen = ({ navigation }: { navigation: any }) => {
-  const [data, setData] = useState<Item[]>([]);
+const HomeScreen: React.FC<Props> = ({ navigation }) => {
+  const [data, setData] = useState<ItemType[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const result = await getItems();
-        setData(result);
+        console.log('API response:', result);
+        if (Array.isArray(result)) {
+          setData(result);
+        } else if (result && Array.isArray(result.results)) {
+          setData(result.results);
+        } else {
+          console.error('Unexpected API response structure:', result);
+        }
       } catch (error) {
-        console.error(error);
+        console.error('Error fetching items:', error);
       }
     };
 
     fetchData();
   }, []);
 
+  const handleAddItemPress = () => {
+    console.log('Navigating to AddItem screen');
+    navigation.navigate('AddItem');
+  };
+
+  const handleItemPress = (itemId: number) => {
+    console.log('Navigating to ItemDetail screen with itemId:', itemId);
+    navigation.navigate('ItemDetail', { itemId });
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Items</Text>
-      <Button title="Add Item" onPress={() => navigation.navigate('AddItem')} />
+      <Text style={styles.header}>Recepti</Text>
+      <Button title="Add Item" onPress={handleAddItemPress} />
       <FlatList
         data={data}
         keyExtractor={item => item.id.toString()}
         renderItem={({ item }) => (
-          <View style={styles.itemContainer}>
-            <Text style={styles.itemName}>{item.item_name}</Text>
-            <Text style={styles.itemDesc}>{item.item_desc}</Text>
-          </View>
+          <TouchableOpacity onPress={() => handleItemPress(item.id)}>
+            <ItemComponent item={item} />
+          </TouchableOpacity>
         )}
       />
     </View>
@@ -45,24 +73,13 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#fff',
   },
   header: {
     fontSize: 24,
     marginBottom: 20,
-  },
-  itemContainer: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  itemName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  itemDesc: {
-    fontSize: 14,
+    textAlign: 'center',
   },
 });
 

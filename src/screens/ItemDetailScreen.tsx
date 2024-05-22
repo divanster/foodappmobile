@@ -1,15 +1,17 @@
 // src/screens/ItemDetailScreen.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Button, StyleSheet } from 'react-native';
-import { ItemDetailScreenProps } from '../types/navigation';
+import { View, Text, Button, StyleSheet } from 'react-native';
 import { getItem, rateItem } from '../api/api';
-import Item from '../components/Item';
+import { ItemDetailScreenProps } from '../types/navigation';
+import ItemComponent from '../components/Item';
 import Rating from '../components/Rating';
 
 interface Item {
   id: number;
   item_name: string;
   item_desc: string;
+  item_image: string;
+  get_average_rating: number;
 }
 
 const ItemDetailScreen: React.FC<ItemDetailScreenProps> = ({ route }) => {
@@ -41,12 +43,14 @@ const ItemDetailScreen: React.FC<ItemDetailScreenProps> = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      {item && (
+      {item ? (
         <>
-          <Item item={item} />
+          <ItemComponent item={item} />
           <Rating rating={rating} setRating={setRating} />
           <Button title="Submit Rating" onPress={handleRateItem} />
         </>
+      ) : (
+        <Text>Loading...</Text>
       )}
     </View>
   );

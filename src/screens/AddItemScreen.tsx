@@ -1,23 +1,47 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
-import { addItem } from '../api/api'; // Ensure no .ts extension
+import { View, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { addItem } from '../api/api';
+import { AddItemScreenProps } from '../types/navigation';
+import axios from 'axios';
 
-const AddItemScreen = ({ navigation }: { navigation: any }) => {
+const DEFAULT_IMAGE_URL =
+  'https://media.istockphoto.com/id/1426890025/es/foto/la-pizza-de-la-que-te-olvidaste-durante-una-semana-y-se-puso-mohosa.jpg?s=612x612&w=0&k=20&c=r0cHrYxEjoLUoSz9VQCglgXc6Win_fFu-fjDwWfoPu4=';
+
+const AddItemScreen: React.FC<AddItemScreenProps> = ({ navigation }) => {
   const [itemName, setItemName] = useState('');
   const [itemDesc, setItemDesc] = useState('');
+  const [itemImage, setItemImage] = useState('');
 
-  const handleSubmit = async () => {
+  const handleAddItem = async () => {
+    if (!itemName || !itemDesc) {
+      Alert.alert('Error', 'Item name and description are required.');
+      return;
+    }
+
+    const newItem = {
+      item_name: itemName,
+      item_desc: itemDesc,
+      item_image: itemImage || DEFAULT_IMAGE_URL,
+    };
+
     try {
-      await addItem({ item_name: itemName, item_desc: itemDesc });
+      console.log('Adding item with data:', newItem);
+      await addItem(newItem);
       navigation.goBack();
     } catch (error) {
-      console.error(error);
+      if (axios.isAxiosError(error)) {
+        console.error(
+          'Error adding item:',
+          error.response?.data || error.message,
+        );
+      } else {
+        console.error('Error adding item:', error);
+      }
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Add New Item</Text>
       <TextInput
         style={styles.input}
         placeholder="Item Name"
@@ -30,7 +54,13 @@ const AddItemScreen = ({ navigation }: { navigation: any }) => {
         value={itemDesc}
         onChangeText={setItemDesc}
       />
-      <Button title="Submit" onPress={handleSubmit} />
+      <TextInput
+        style={styles.input}
+        placeholder="Item Image URL"
+        value={itemImage}
+        onChangeText={setItemImage}
+      />
+      <Button title="Add Item" onPress={handleAddItem} />
     </View>
   );
 };
@@ -38,21 +68,14 @@ const AddItemScreen = ({ navigation }: { navigation: any }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     padding: 16,
   },
-  header: {
-    fontSize: 24,
-    marginBottom: 20,
-  },
   input: {
-    width: '100%',
-    padding: 10,
+    height: 40,
+    borderColor: 'gray',
     borderWidth: 1,
-    borderColor: '#ccc',
-    marginBottom: 20,
-    borderRadius: 4,
+    marginBottom: 10,
+    padding: 10,
   },
 });
 

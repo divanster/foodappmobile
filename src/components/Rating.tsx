@@ -1,3 +1,4 @@
+// src/components/Rating.tsx
 import React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
 
@@ -7,19 +8,15 @@ interface RatingProps {
 }
 
 const Rating: React.FC<RatingProps> = ({ rating, setRating }) => {
-  const handleRate = (value: number) => {
-    setRating(value);
-  };
-
   return (
     <View style={styles.ratingContainer}>
-      <Text style={styles.ratingText}>Rating: {rating}</Text>
+      <Text>Rating: {rating}</Text>
       <View style={styles.buttonContainer}>
-        {[1, 2, 3, 4, 5].map(value => (
+        {[1, 2, 3, 4, 5].map(rate => (
           <Button
-            key={value}
-            title={`${value}`}
-            onPress={() => handleRate(value)}
+            key={rate}
+            title={`${rate}`}
+            onPress={() => setRating(rate)}
           />
         ))}
       </View>
@@ -31,15 +28,12 @@ const styles = StyleSheet.create({
   ratingContainer: {
     flexDirection: 'column',
     alignItems: 'center',
-  },
-  ratingText: {
-    fontSize: 18,
-    marginBottom: 10,
+    marginVertical: 10,
   },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '80%',
+    justifyContent: 'space-around',
+    width: '100%',
   },
 });
 
