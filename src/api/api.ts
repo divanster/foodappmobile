@@ -1,3 +1,4 @@
+// src/api/api.ts
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -79,7 +80,7 @@ export const getItem = async (id: number) => {
 export const rateItem = async (id: number, rating: number) => {
   try {
     console.log(`Rating item with ID: ${id} with rating: ${rating}`);
-    const response = await axios.post(`${API_URL}/items/${id}/submit_rating/`, {
+    const response = await axios.post(`${API_URL}/items/${id}/rate/`, {
       rating,
     });
     console.log('API response in rateItem:', response.data);

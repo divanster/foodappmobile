@@ -1,16 +1,28 @@
-// src/components/Rating.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
+import { rateItem } from '../api/api'; // Adjust the import path as necessary
 
 interface RatingProps {
-  rating: number;
-  setRating: (rating: number) => void;
+  itemId: number; // Assuming you pass the itemId as a prop
 }
 
-const Rating: React.FC<RatingProps> = ({ rating, setRating }) => {
+const Rating: React.FC<RatingProps> = ({ itemId }) => {
+  const [rating, setRating] = useState(0);
+
+  const handleRateItem = async () => {
+    try {
+      const response = await rateItem(itemId, rating);
+      console.log('Rating response:', response);
+      alert('Rating submitted successfully');
+    } catch (error) {
+      console.error('Failed to rate item:', error);
+      alert('Error submitting rating');
+    }
+  };
+
   return (
     <View style={styles.ratingContainer}>
-      <Text>Rating: {rating}</Text>
+      <Text>Rate this item:</Text>
       <View style={styles.buttonContainer}>
         {[1, 2, 3, 4, 5].map(rate => (
           <Button
@@ -20,6 +32,7 @@ const Rating: React.FC<RatingProps> = ({ rating, setRating }) => {
           />
         ))}
       </View>
+      <Button title="Submit Rating" onPress={handleRateItem} />
     </View>
   );
 };

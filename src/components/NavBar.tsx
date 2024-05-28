@@ -1,4 +1,3 @@
-// src/components/NavBar.tsx
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Appbar, Menu } from 'react-native-paper';

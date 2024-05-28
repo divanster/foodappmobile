@@ -1,4 +1,3 @@
-// src/screens/HomeScreen.tsx
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -8,6 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 import { getItems } from '../api/api';
 import ItemComponent from '../components/Item';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -23,26 +23,29 @@ interface Props {
 
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const [data, setData] = useState<ItemType[]>([]);
+  const isFocused = useIsFocused();
+
+  const fetchData = async () => {
+    try {
+      const result = await getItems();
+      console.log('API response:', result);
+      if (Array.isArray(result)) {
+        setData(result);
+      } else if (result && Array.isArray(result.results)) {
+        setData(result.results);
+      } else {
+        console.error('Unexpected API response structure:', result);
+      }
+    } catch (error) {
+      console.error('Error fetching items:', error);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const result = await getItems();
-        console.log('API response:', result);
-        if (Array.isArray(result)) {
-          setData(result);
-        } else if (result && Array.isArray(result.results)) {
-          setData(result.results);
-        } else {
-          console.error('Unexpected API response structure:', result);
-        }
-      } catch (error) {
-        console.error('Error fetching items:', error);
-      }
-    };
-
-    fetchData();
-  }, []);
+    if (isFocused) {
+      fetchData();
+    }
+  }, [isFocused]);
 
   const handleAddItemPress = () => {
     console.log('Navigating to AddItem screen');
