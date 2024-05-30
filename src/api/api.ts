@@ -1,4 +1,3 @@
-// src/api/api.ts
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -72,6 +71,64 @@ export const getItem = async (id: number) => {
       );
     } else {
       console.error(`Error fetching item ${id}:`, error);
+    }
+    throw error;
+  }
+};
+
+export const getComments = async (itemId: number) => {
+  try {
+    const response = await axios.get(`${API_URL}/items/${itemId}/comments/`);
+    console.log('API response in getComments:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        `Error fetching comments for item ${itemId}:`,
+        error.response?.data || error.message,
+      );
+    } else {
+      console.error(`Error fetching comments for item ${itemId}:`, error);
+    }
+    throw error;
+  }
+};
+
+export const addComment = async (itemId: number, content: string) => {
+  try {
+    const response = await axios.post(`${API_URL}/items/${itemId}/comments/`, {
+      content,
+      item: itemId,
+    });
+    console.log('API response in addComment:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        `Error adding comment to item ${itemId}:`,
+        error.response?.data || error.message,
+      );
+    } else {
+      console.error(`Error adding comment to item ${itemId}:`, error);
+    }
+    throw error;
+  }
+};
+
+export const deleteComment = async (itemId: number, commentId: number) => {
+  try {
+    await axios.delete(`${API_URL}/comments/${commentId}/`);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        `Error deleting comment ${commentId} from item ${itemId}:`,
+        error.response?.data || error.message,
+      );
+    } else {
+      console.error(
+        `Error deleting comment ${commentId} from item ${itemId}:`,
+        error,
+      );
     }
     throw error;
   }

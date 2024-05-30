@@ -1,24 +1,51 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet, Image } from 'react-native';
-import { getItem, rateItem } from '../api/api'; // Ensure the path is correct
+import {
+  View,
+  Text,
+  Button,
+  StyleSheet,
+  Image,
+  TextInput,
+  FlatList,
+  TouchableOpacity,
+} from 'react-native';
+import {
+  getItem,
+  rateItem,
+  getComments,
+  addComment,
+  deleteComment,
+} from '../api/api';
 
 const ItemDetailScreen: React.FC<{ route: any }> = ({ route }) => {
   const [item, setItem] = useState<any>(null);
   const [rating, setRating] = useState(0);
-  const { itemId } = route.params; // Assuming you pass itemId through navigation params
+  const [comments, setComments] = useState<any[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const { itemId } = route.params;
 
   useEffect(() => {
     const fetchItem = async () => {
       try {
         const fetchedItem = await getItem(itemId);
         setItem(fetchedItem);
-        setRating(fetchedItem.get_average_rating || 0); // Assuming your API returns average rating
+        setRating(fetchedItem.get_average_rating || 0);
       } catch (error) {
         console.error('Failed to fetch item details:', error);
       }
     };
 
+    const fetchComments = async () => {
+      try {
+        const fetchedComments = await getComments(itemId);
+        setComments(Array.isArray(fetchedComments) ? fetchedComments : []);
+      } catch (error) {
+        console.error('Failed to fetch comments:', error);
+      }
+    };
+
     fetchItem();
+    fetchComments();
   }, [itemId]);
 
   const handleRateItem = async () => {
@@ -27,6 +54,34 @@ const ItemDetailScreen: React.FC<{ route: any }> = ({ route }) => {
       console.log('Item rated successfully:', response);
     } catch (error) {
       console.error('Failed to rate item:', error);
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (newComment.trim() === '') return;
+    try {
+      const response = await addComment(itemId, newComment);
+      console.log('API response in addComment:', response); // Log the response
+      if (response && response.content) {
+        // Ensure response has the expected structure
+        setComments(prevComments => [...prevComments, response]);
+      } else {
+        console.error('Unexpected response structure:', response);
+      }
+      setNewComment('');
+    } catch (error) {
+      console.error('Failed to add comment:', error);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: number) => {
+    try {
+      await deleteComment(itemId, commentId);
+      setComments(prevComments =>
+        prevComments.filter(comment => comment.id !== commentId),
+      );
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
     }
   };
 
@@ -54,6 +109,29 @@ const ItemDetailScreen: React.FC<{ route: any }> = ({ route }) => {
         ))}
       </View>
       <Button title="Submit Rating" onPress={handleRateItem} />
+      <Text style={styles.commentHeader}>Comments</Text>
+      <FlatList
+        data={comments}
+        keyExtractor={item => item.id.toString()}
+        renderItem={({ item: comment }) => (
+          <View style={styles.comment}>
+            <Text>
+              {comment.user.username}: {comment.content}
+            </Text>
+            <Text>{comment.created_at}</Text>
+            <TouchableOpacity onPress={() => handleDeleteComment(comment.id)}>
+              <Text style={styles.deleteButton}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Add a comment..."
+        value={newComment}
+        onChangeText={setNewComment}
+      />
+      <Button title="Add Comment" onPress={handleAddComment} />
     </View>
   );
 };
@@ -78,6 +156,25 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    marginVertical: 10,
+  },
+  commentHeader: {
+    fontSize: 20,
+    marginVertical: 10,
+  },
+  comment: {
+    padding: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  deleteButton: {
+    color: 'red',
+    marginTop: 5,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 8,
     marginVertical: 10,
   },
 });
