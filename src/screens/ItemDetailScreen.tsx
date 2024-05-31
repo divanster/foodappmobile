@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,37 +16,49 @@ import {
   addComment,
   deleteComment,
 } from '../api/api';
+import { useFocusEffect } from '@react-navigation/native';
 
-const ItemDetailScreen: React.FC<{ route: any }> = ({ route }) => {
+const ItemDetailScreen: React.FC<{ route: any; navigation: any }> = ({
+  route,
+  navigation,
+}) => {
   const [item, setItem] = useState<any>(null);
   const [rating, setRating] = useState(0);
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
   const { itemId } = route.params;
 
-  useEffect(() => {
-    const fetchItem = async () => {
-      try {
-        const fetchedItem = await getItem(itemId);
-        setItem(fetchedItem);
-        setRating(fetchedItem.get_average_rating || 0);
-      } catch (error) {
-        console.error('Failed to fetch item details:', error);
-      }
-    };
-
-    const fetchComments = async () => {
-      try {
-        const fetchedComments = await getComments(itemId);
-        setComments(Array.isArray(fetchedComments) ? fetchedComments : []);
-      } catch (error) {
-        console.error('Failed to fetch comments:', error);
-      }
-    };
-
-    fetchItem();
-    fetchComments();
+  const fetchItemDetails = useCallback(async () => {
+    try {
+      const fetchedItem = await getItem(itemId);
+      setItem(fetchedItem);
+      setRating(fetchedItem.get_average_rating || 0);
+    } catch (error) {
+      console.error('Failed to fetch item details:', error);
+    }
   }, [itemId]);
+
+  const fetchComments = useCallback(async () => {
+    try {
+      const fetchedComments = await getComments(itemId);
+      console.log('API response in getComments:', fetchedComments);
+      setComments(fetchedComments.results || []);
+    } catch (error) {
+      console.error('Failed to fetch comments:', error);
+    }
+  }, [itemId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchItemDetails();
+      fetchComments();
+    }, [fetchItemDetails, fetchComments])
+  );
+
+  useEffect(() => {
+    fetchItemDetails();
+    fetchComments();
+  }, [itemId, fetchItemDetails, fetchComments]);
 
   const handleRateItem = async () => {
     try {
@@ -61,9 +73,8 @@ const ItemDetailScreen: React.FC<{ route: any }> = ({ route }) => {
     if (newComment.trim() === '') return;
     try {
       const response = await addComment(itemId, newComment);
-      console.log('API response in addComment:', response); // Log the response
+      console.log('API response in addComment:', response);
       if (response && response.content) {
-        // Ensure response has the expected structure
         setComments(prevComments => [...prevComments, response]);
       } else {
         console.error('Unexpected response structure:', response);
@@ -112,11 +123,11 @@ const ItemDetailScreen: React.FC<{ route: any }> = ({ route }) => {
       <Text style={styles.commentHeader}>Comments</Text>
       <FlatList
         data={comments}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={comment => comment.id.toString()}
         renderItem={({ item: comment }) => (
           <View style={styles.comment}>
             <Text>
-              {comment.user.username}: {comment.content}
+              {comment.user}: {comment.content}
             </Text>
             <Text>{comment.created_at}</Text>
             <TouchableOpacity onPress={() => handleDeleteComment(comment.id)}>
