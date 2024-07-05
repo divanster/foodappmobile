@@ -155,11 +155,7 @@ export const rateItem = async (id: number, rating: number) => {
   }
 };
 
-export const addItem = async (itemData: {
-  item_name: string;
-  item_desc: string;
-  item_image: string;
-}) => {
+export const addItem = async (itemData: { item_desc: string; item_name: string }) => {
   try {
     console.log('Adding item with data:', itemData);
     const response = await axios.post(`${API_URL}/items/`, itemData);

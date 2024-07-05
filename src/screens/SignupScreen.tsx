@@ -1,31 +1,41 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Text } from 'react-native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../types/navigation';
-import { RouteProp } from '@react-navigation/native';
+import { View, TextInput, Button, StyleSheet, Text, Alert } from 'react-native';
+import axios from 'axios';
 
-type SignupScreenNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  'Signup'
->;
-type SignupScreenRouteProp = RouteProp<RootStackParamList, 'Signup'>;
-
-interface SignupScreenProps {
-  navigation: SignupScreenNavigationProp;
-  route: SignupScreenRouteProp;
-}
-
-const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
+const SignupScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSignup = async () => {
     try {
-      // Implement your signup logic here
-      // For example, call a signup API
-      navigation.navigate('Login');
+      const response = await axios.post(
+        'http://10.0.2.2:8000/api/auth/register/',
+        {
+          username,
+          email,
+          password,
+        },
+      );
+
+      if (response.status === 201) {
+        Alert.alert('Signup successful', 'You can now log in');
+        navigation.navigate('Login');
+      } else {
+        Alert.alert('Error', 'Failed to sign up. Please try again.');
+      }
     } catch (error) {
-      console.error('Error signing up:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Axios error:', error.response?.data || error.message);
+        Alert.alert(
+          'Error',
+          error.response?.data?.detail ||
+            'Failed to sign up. Please try again.',
+        );
+      } else {
+        console.error('Error signing up:', error);
+        Alert.alert('Error', 'Failed to sign up. Please try again.');
+      }
     }
   };
 
@@ -37,6 +47,12 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
         placeholder="Username"
         value={username}
         onChangeText={setUsername}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
       />
       <TextInput
         style={styles.input}
